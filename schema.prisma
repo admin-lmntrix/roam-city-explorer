@@ -1,0 +1,165 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlaceType {
+  HIDDEN_PLACE
+  FOOD
+  ATTRACTION
+  NATURE
+  NIGHTLIFE
+  HISTORY
+  SHOPPING
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String?
+  email        String       @unique
+  passwordHash String?
+  role         Role         @default(USER)
+  image        String?
+  reviews      Review[]
+  favorites    Favorite[]
+  submissions  Submission[]
+  collections  Collection[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model City {
+  id          String   @id @default(cuid())
+  name        String
+  country     String
+  slug        String   @unique
+  latitude    Float?
+  longitude   Float?
+  places      Place[]
+  guides      Guide[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Place {
+  id            String       @id @default(cuid())
+  name          String
+  slug          String       @unique
+  description   String
+  shortDesc     String?
+  type          PlaceType
+  address       String?
+  latitude      Float
+  longitude     Float
+  priceLevel    Int          @default(1)
+  imageUrl      String?
+  featured      Boolean      @default(false)
+  cityId        String
+  city          City         @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  reviews       Review[]
+  favorites     Favorite[]
+  collectionItems CollectionPlace[]
+  guidePlaces   GuidePlace[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([cityId, type])
+  @@index([cityId, featured])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String
+  userId    String
+  placeId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, placeId])
+  @@index([placeId])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  placeId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([userId, placeId])
+}
+
+model Collection {
+  id        String            @id @default(cuid())
+  name      String
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  places    CollectionPlace[]
+  createdAt DateTime          @default(now())
+}
+
+model CollectionPlace {
+  collectionId String
+  placeId      String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  place        Place      @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  @@id([collectionId, placeId])
+}
+
+model Guide {
+  id          String       @id @default(cuid())
+  title       String
+  slug        String       @unique
+  description String
+  cityId      String
+  city        City         @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  places      GuidePlace[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model GuidePlace {
+  guideId   String
+  placeId   String
+  position  Int
+  guide     Guide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  place     Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  @@id([guideId, placeId])
+  @@index([guideId, position])
+}
+
+model Submission {
+  id          String           @id @default(cuid())
+  name        String
+  description String
+  cityName    String
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  type        PlaceType
+  status      SubmissionStatus @default(PENDING)
+  userId      String?
+  user        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt   DateTime         @default(now())
+
+  @@index([status, createdAt])
+}
