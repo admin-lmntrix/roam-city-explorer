@@ -1,0 +1,45 @@
+{
+  "name": "city-explorer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "vercel-build": "npm run build:deploy",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "build:deploy": "prisma generate && prisma db push --skip-generate && next build",
+    "start:docker": "prisma db push --skip-generate && next start -H 0.0.0.0 -p ${PORT:-3000}",
+    "smoke": "bash scripts/smoke-test.sh"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^6.19.3",
+    "@prisma/client": "^6.16.0",
+    "bcryptjs": "^3.0.2",
+    "lucide-react": "^0.468.0",
+    "next": "^15.5.0",
+    "next-auth": "^5.0.0-beta.29",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "dotenv": "^18.0.5",
+    "postcss": "^8.5.0",
+    "prisma": "^6.16.0",
+    "tailwindcss": "^4.1.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=20.9"
+  }
+}
